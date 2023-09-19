@@ -16,6 +16,7 @@ interface IUsers {
     }
 }
 
+// User Constructor with build in methods to validate each User's data from inside.
 class User {
     userId: string;
     requestsStack: IRequest[];
@@ -28,12 +29,14 @@ class User {
         this.interval = interval;
     }
 
+    // - wait until 100 (maxRequests) request;
+    // - check the diff between last request's receive time and request's receive time 100 before;
     limitCheck(): boolean {
         if (this.requestsStack.length >= this.maxRequests) {
             const lastRequestTimeByNFromEnd = (n: number): number => this.requestsStack[this.requestsStack.length - 1 - n].receiveTime;
             const delta: number = lastRequestTimeByNFromEnd(0) - lastRequestTimeByNFromEnd(this.maxRequests);
 
-            return delta < this.interval;
+            return delta <= this.interval;
         }
         return false;
     }
@@ -51,17 +54,17 @@ const users: IUsers = {
 };
 
 const rateLimitMiddleware = ({ userId, maxRequests, interval }): void => {
-    console.log('rateLimitMiddleware', userId, users, maxRequests, interval);
+    const newRequest: IRequest = { requestId: String(new Date()), receiveTime: Number(new Date()) };
 
     if( users.userIds.includes(userId) ) {
-        users.userInfos[userId].pushNewRequest(
-            { requestId: String(new Date()), receiveTime: Number(new Date()) });
-        console.log('if', userId, users.userInfos[userId]);
+        users.userInfos[userId].pushNewRequest(newRequest);
+        // console.log('if', userId, users.userInfos[userId]);
     } else {
         users.userIds.push(userId);
-        users.userInfos[userId] = new User(userId, [], maxRequests, interval);
-        console.log('else', userId, users.userInfos[userId]);
+        users.userInfos[userId] = new User(userId, [newRequest], maxRequests, interval);
+        // console.log('else', userId, users.userInfos[userId]);
     }
+    console.log('rateLimitMiddleware', userId, users, maxRequests, interval);
 
     // if(limit exceeded) {
     //     res
