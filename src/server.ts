@@ -1,8 +1,7 @@
-import express from 'express';
-const app = express();
+import express, { Express } from 'express';
+const app: Express = express();
 import rateLimitMiddleware from './middlewares/rateLimitMiddleware';
 import api from './routes/index';
-const port = 3000;
 
 
 app.use(express.json())
@@ -12,6 +11,7 @@ app.use(rateLimitMiddleware);
 app.use('/api', api)
 
 
+const port: number = 3000;
 app.listen(port, () => {
     return console.log(`'Server is running on port ${port}`);
 });
@@ -19,5 +19,4 @@ app.listen(port, () => {
 // TODO:
 // - Replace ERR_HTTP_HEADERS_SENT with 429
 // - Implement a mechanism to track the number of requests made by each client within a minute;
-// - Ensure that the middleware correctly handles multiple clients trying to access resources simultaneously;
 // - It also involves handling HTTP status codes and timeouts effectively.
