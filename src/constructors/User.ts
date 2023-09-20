@@ -15,8 +15,6 @@ export class User {
     isLimitExceeded(): boolean {
         // Wait until 100 (maxRequests) request;
         if (this.requestsStack.length >= maxRequests) {
-            console.log('requestsStack', this.requestsStack.length);
-
             // Checking the diff between last request's receive time and request's receive time 100 before;
             const getRequestTimeAt = (n: number): number => this.requestsStack.at(n).receiveTime;
             const delta: number = (getRequestTimeAt(-1) - getRequestTimeAt(-maxRequests)) / 1000;
