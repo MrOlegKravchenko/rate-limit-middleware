@@ -16,8 +16,5 @@ It is easy customize your own values in [src/constants](./src/constants/index.ts
 
 > It is also self-cleaning, leaving only last "maxRequests" requests, e.g. 100;
 
-.mkv demo:
-[manual click demo.mkv](demo%2Fmanual%20click%20demo.mkv)
-
-.mov demo:
-[manual click demo.mkv.mov](demo%2Fmanual%20click%20demo.mkv.mov)
+Demo:
+> https://github.com/MrOlegKravchenko/rate-limit-middleware/assets/44597516/216470b5-aa0f-4c1c-86e1-05730d2e38c7
