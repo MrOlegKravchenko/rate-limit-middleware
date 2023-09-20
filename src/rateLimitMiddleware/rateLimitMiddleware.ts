@@ -6,7 +6,7 @@ interface IUser {
     userId: string,
     requestsStack: IRequest[],
     pushNewRequest: (r: IRequest) => void,
-    limitCheck: () => boolean,
+    isLimitExceeded: () => boolean,
     onHold?: () => boolean
 }
 interface IUsers {
@@ -29,14 +29,16 @@ class User {
         this.interval = interval;
     }
 
-    // - wait until 100 (maxRequests) request;
-    // - check the diff between last request's receive time and request's receive time 100 before;
-    limitCheck(): boolean {
-        if (this.requestsStack.length >= this.maxRequests) {
-            const lastRequestTimeByNFromEnd = (n: number): number => this.requestsStack[this.requestsStack.length - 1 - n].receiveTime;
-            const delta: number = lastRequestTimeByNFromEnd(0) - lastRequestTimeByNFromEnd(this.maxRequests);
+    isLimitExceeded(): boolean {
+        // - wait until 100 (maxRequests) request;
+        if (this.requestsStack.length > this.maxRequests) {
+            // - check the diff between last request's receive time and request's receive time 100 before;
+            const nRequestTimeFromEnd = (n: number): number => this.requestsStack[this.requestsStack.length - 1 - n].receiveTime;
+            const delta: number = nRequestTimeFromEnd(0) - nRequestTimeFromEnd(this.maxRequests);
 
-            return delta <= this.interval;
+            // console.log(`nRequestTimeFromEnd`, nRequestTimeFromEnd(0), nRequestTimeFromEnd(this.maxRequests));
+            // console.log(`delta for ${this.userId}`, delta/1000, (delta/1000) <= this.interval);
+            return delta/1000 <= this.interval; // IF delta is less than interval, so it means that requests are too frequent
         }
         return false;
     }
@@ -44,7 +46,19 @@ class User {
         this.requestsStack.push(userRequest);
     }
     onHold(): boolean {
-        return this.limitCheck();
+        let result: boolean = false;
+
+        if ( this.isLimitExceeded() ) {
+            result = true;
+            // console.log('in onHold if', this.userId, result);
+
+            setTimeout(() => {
+                result = false;
+                // console.log('in onHold setTimeout', this.userId, result);
+            }, 5*1000)
+        }
+        // console.log('in onHold after if', this.userId, result);
+        return result;
     }
 }
 
@@ -53,24 +67,26 @@ const users: IUsers = {
     userInfos: {}
 };
 
-const rateLimitMiddleware = ({ userId, maxRequests, interval }): void => {
+
+const rateLimitMiddleware = (req, res, next): void => {
+    const maxRequests = 10;
+    const interval = 6;
+    const userId: string = req.headers['user-id'];
     const newRequest: IRequest = { requestId: String(new Date()), receiveTime: Number(new Date()) };
 
-    if( users.userIds.includes(userId) ) {
+    if(users.userInfos[userId]?.onHold()) {
+        res
+            .status(429)
+            .send(`User - ${userId} - exceeded maximum requests per user, which is ${maxRequests} per ${interval}, this blocking will last 1 minute.`);
+    } else if( users.userIds.includes(userId)) {
+        // console.log('includes userId ', userId);
         users.userInfos[userId].pushNewRequest(newRequest);
-        // console.log('if', userId, users.userInfos[userId]);
     } else {
         users.userIds.push(userId);
         users.userInfos[userId] = new User(userId, [newRequest], maxRequests, interval);
-        // console.log('else', userId, users.userInfos[userId]);
     }
-    console.log('rateLimitMiddleware', userId, users, maxRequests, interval);
-
-    // if(limit exceeded) {
-    //     res
-    //         .status(429)
-    //         .send(`You've exceeded maximum requests per user, which is ${maxRequests} per ${interval}, this blocking will last 1 minute.`)
-    // }
+    // console.log('rateLimitMiddleware', userId, Object.values(users.userInfos).map((user: IUser) => user.requestsStack.length));
+    next()
 };
 
 export default rateLimitMiddleware;
