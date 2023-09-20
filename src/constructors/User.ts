@@ -17,23 +17,26 @@ export class User {
         if (this.requestsStack.length >= maxRequests) {
             console.log('requestsStack', this.requestsStack.length);
 
-            // Check the diff between last request's receive time and request's receive time 100 before;
+            // Checking the diff between last request's receive time and request's receive time 100 before;
             const getRequestTimeAt = (n: number): number => this.requestsStack.at(n).receiveTime;
-            const delta: number = (getRequestTimeAt(-1) - getRequestTimeAt(-maxRequests)) / 1000; // Check 101 theory
+            const delta: number = (getRequestTimeAt(-1) - getRequestTimeAt(-maxRequests)) / 1000;
 
             console.log(`>>> First ${maxRequests} request for ${this.userId} User takes ${delta} seconds.`,
                 `Need ${interval} seconds.`,
                 delta <= interval ? '<ON HOLD>' : '<GOOD>');
-            return delta <= interval; // IF delta is less than interval, so it means that requests are too frequent
+
+            // IF delta is less than interval, so it means that requests are too frequent
+            return delta <= interval;
         }
         return false;
     }
     pushNewRequest(userRequest: IRequest): boolean {
         this.requestsStack.push(userRequest);
+        // Cleaning, leaving only last 100 (maxRequests) requests;
+        if (this.requestsStack.length > maxRequests) {
+            this.requestsStack = this.requestsStack.splice(-maxRequests);
+        }
         if (this.isLimitExceeded()) {
-            console.log('POP', this.requestsStack.length)
-            this.requestsStack.unshift();
-            console.log('POP', this.requestsStack.length)
             this.onHold = true;
 
             setTimeout(() => {

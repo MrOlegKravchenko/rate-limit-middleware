@@ -1,7 +1,7 @@
-import express, { Express } from 'express';
+import express from 'express';
 import rateLimitMiddleware from './middlewares/rateLimitMiddleware';
 import api from './routes/index';
-const app: Express = express();
+const app = express();
 
 
 app.use(express.json())
@@ -18,6 +18,4 @@ app.listen(port, () => {
 
 // TODO:
 // - Replace ERR_HTTP_HEADERS_SENT with 429
-// - Implement a mechanism to track the number of requests made by each client within a minute;
-// - It also involves handling HTTP status codes and timeouts effectively;
 // - Nodejs eslint;

@@ -12,7 +12,5 @@ export interface IUser {
 }
 
 export interface IUsers {
-    userInfos: {
-        [user: string]: IUser
-    }
+    [user: string]: IUser
 }
