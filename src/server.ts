@@ -1,19 +1,16 @@
 import express from 'express';
 const app = express();
-import rateLimitMiddleware from './rateLimitMiddleware';
+import rateLimitMiddleware from './middlewares/rateLimitMiddleware';
+import api from './routes/index';
 const port = 3000;
 
 
 app.use(express.json())
+
 app.use(rateLimitMiddleware);
 
+app.use('/api', api)
 
-app.get('/api/products', (_req, res): void => {
-    res.status(200).send('List of products');
-});
-app.get('/api/taxes', (_req, res): void => {
-    res.status(200).send('List of taxes');
-});
 
 app.listen(port, () => {
     return console.log(`'Server is running on port ${port}`);

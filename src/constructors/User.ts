@@ -1,23 +1,8 @@
-interface IRequest {
-    requestId: string,
-    receiveTime: number
-}
-interface IUser {
-    userId: string,
-    requestsStack: IRequest[],
-    pushNewRequest: (r: IRequest) => void,
-    isLimitExceeded: () => boolean,
-    onHold?: () => boolean
-}
-interface IUsers {
-    userIds: string[],
-    userInfos: {
-        [user: string]: IUser
-    }
-}
+import { IRequest } from '../interfaces';
+
 
 // User Constructor with build in methods to validate each User's data from inside.
-class User {
+export class User {
     userId: string;
     requestsStack: IRequest[];
     maxRequests: number;
@@ -61,32 +46,3 @@ class User {
         return result;
     }
 }
-
-const users: IUsers = {
-    userIds: [],
-    userInfos: {}
-};
-
-
-const rateLimitMiddleware = (req, res, next): void => {
-    const maxRequests = 10;
-    const interval = 6;
-    const userId: string = req.headers['user-id'];
-    const newRequest: IRequest = { requestId: String(new Date()), receiveTime: Number(new Date()) };
-
-    if(users.userInfos[userId]?.onHold()) {
-        res
-            .status(429)
-            .send(`User - ${userId} - exceeded maximum requests per user, which is ${maxRequests} per ${interval}, this blocking will last 1 minute.`);
-    } else if( users.userIds.includes(userId)) {
-        // console.log('includes userId ', userId);
-        users.userInfos[userId].pushNewRequest(newRequest);
-    } else {
-        users.userIds.push(userId);
-        users.userInfos[userId] = new User(userId, [newRequest], maxRequests, interval);
-    }
-    // console.log('rateLimitMiddleware', userId, Object.values(users.userInfos).map((user: IUser) => user.requestsStack.length));
-    next()
-};
-
-export default rateLimitMiddleware;
