@@ -6,13 +6,12 @@ export interface IRequest {
 export interface IUser {
     userId: string,
     requestsStack: IRequest[],
-    pushNewRequest: (r: IRequest) => void,
+    pushNewRequest: (r: IRequest) => boolean,
     isLimitExceeded: () => boolean,
-    onHold?: () => boolean
+    onHold: boolean
 }
 
 export interface IUsers {
-    userIds: string[],
     userInfos: {
         [user: string]: IUser
     }

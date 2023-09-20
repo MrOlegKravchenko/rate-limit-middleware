@@ -1,27 +1,36 @@
 import { Request, Response, NextFunction } from 'express';
+import crypto from 'crypto';
 import { IRequest, IUsers } from '../../interfaces';
 import { maxRequests, interval } from '../../constants';
 import { User } from '../../constructors/User';
 
-const users: IUsers = {
-    userIds: [],
+const users: IUsers = { // simplify
     userInfos: {}
 };
 
-const rateLimitMiddleware = (req: Request, res: Response, next: NextFunction): void => {
-    const userId: string = <string>req.headers['user-id'];
-    const newRequest: IRequest = { requestId: String(new Date()), receiveTime: Number(new Date()) };
+const rateLimitMiddleware = (req: Request, res: Response, next: NextFunction) => {
+    // To determine user I generate postman requests with 'user-id' values in headers
+    const userId = req.headers['user-id'] as string;
 
-    if(users.userInfos[userId]?.onHold()) {
-        res
+    let uuid = crypto.randomUUID();
+    const newRequest: IRequest = { requestId: uuid, receiveTime: new Date().getTime() };
+
+    if( users.userInfos[userId]?.onHold ) {
+        return res
             .status(429)
             .send(`User - ${userId} - exceeded maximum requests per user, which is ${maxRequests} per ${interval}, this blocking will last 1 minute.`);
-    } else if( users.userIds.includes(userId)) {
-        users.userInfos[userId].pushNewRequest(newRequest);
-    } else {
-        users.userIds.push(userId);
-        users.userInfos[userId] = new User(userId, [newRequest]);
     }
+
+    if( !(userId in users.userInfos) ) { // in users
+        users.userInfos[userId] = new User(userId, []);
+    }
+
+    // if( !users.userInfos[userId].pushNewRequest(newRequest) ) {
+    //     return res
+    //         .status(429)
+    //         .send(`User - ${userId} - exceeded maximum requests per user, which is ${maxRequests} per ${interval}, this blocking will last 1 minute.`);
+    // }
+    users.userInfos[userId].pushNewRequest(newRequest);
     next()
 };
 

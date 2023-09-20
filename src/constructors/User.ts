@@ -6,6 +6,7 @@ import { maxRequests, interval, haltTime } from '../constants';
 export class User {
     userId: string;
     requestsStack: IRequest[];
+    private _onHold = false;
     constructor(userId: string, requestsStack: IRequest[]) {
         this.userId = userId;
         this.requestsStack = requestsStack;
@@ -13,31 +14,41 @@ export class User {
 
     isLimitExceeded(): boolean {
         // Wait until 100 (maxRequests) request;
-        if (this.requestsStack.length > maxRequests) {
-            // Check the diff between last request's receive time and request's receive time 100 before;
-            const nRequestTimeFromEnd = (n: number): number => this.requestsStack[this.requestsStack.length - 1 - n].receiveTime;
-            const delta: number = nRequestTimeFromEnd(0) - nRequestTimeFromEnd(maxRequests);
+        if (this.requestsStack.length >= maxRequests) {
+            console.log('requestsStack', this.requestsStack.length);
 
-            console.log(`>>> First ${maxRequests} request for ${this.userId} User takes ${delta/1000} seconds.`,
+            // Check the diff between last request's receive time and request's receive time 100 before;
+            const getRequestTimeAt = (n: number): number => this.requestsStack.at(n).receiveTime;
+            const delta: number = (getRequestTimeAt(-1) - getRequestTimeAt(-maxRequests)) / 1000; // Check 101 theory
+
+            console.log(`>>> First ${maxRequests} request for ${this.userId} User takes ${delta} seconds.`,
                 `Need ${interval} seconds.`,
-                (delta/1000) <= interval ? '<ON HOLD>' : '<GOOD>');
-            return delta/1000 <= interval; // IF delta is less than interval, so it means that requests are too frequent
+                delta <= interval ? '<ON HOLD>' : '<GOOD>');
+            return delta <= interval; // IF delta is less than interval, so it means that requests are too frequent
         }
         return false;
     }
-    pushNewRequest(userRequest: IRequest): void {
+    pushNewRequest(userRequest: IRequest): boolean {
         this.requestsStack.push(userRequest);
-    }
-    onHold(): boolean {
-        let result: boolean = false;
-
-        if ( this.isLimitExceeded() ) {
-            result = true;
+        if (this.isLimitExceeded()) {
+            console.log('POP', this.requestsStack.length)
+            this.requestsStack.unshift();
+            console.log('POP', this.requestsStack.length)
+            this.onHold = true;
 
             setTimeout(() => {
-                result = false;
-            }, haltTime*1000)
+                this.onHold = false;
+            }, haltTime * 1000)
+
+            return false;
         }
-        return result;
+        return true;
+    }
+
+    get onHold(): boolean {
+        return this._onHold;
+    }
+    set onHold(value: boolean) {
+        this._onHold = value;
     }
 }
