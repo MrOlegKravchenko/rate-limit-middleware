@@ -11,6 +11,7 @@ dist
 # Coverage directory used by tools like istanbul
 coverage
 *.lcov
+badges
 
 # nyc test coverage
 .nyc_output

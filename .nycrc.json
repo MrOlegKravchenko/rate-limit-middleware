@@ -1,0 +1,22 @@
+{
+    "check-coverage": true,
+    "report-dir": "./badges/middleware/be-report",
+    "reporter": [
+        "lcov",
+        "html",
+        "json",
+        "text-summary"
+    ],
+    "statements": 95,
+    "branches": 95,
+    "functions": 95,
+    "lines": 95,
+    "include": [
+        "src"
+    ],
+    "exclude": [
+        "**/*.spec.ts",
+        "./test/index.ts"
+    ],
+    "all": true
+}

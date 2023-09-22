@@ -11,6 +11,7 @@ app
 
 
 const port: number = 3000;
-app.listen(port, () => {
+
+export default app.listen(port, () => {
     return console.log(`Server is running on port ${port}`);
 });

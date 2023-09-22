@@ -7,5 +7,15 @@
     "sourceMap": true,
     "outDir": "dist"
   },
+  "include": [
+    "./**/*.ts",
+    "src/definitions/**/*.json",
+    "src/modules/tasks"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "test",
+  ],
   "lib": ["es2015"]
 }
